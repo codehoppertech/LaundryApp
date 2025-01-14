@@ -1,0 +1,254 @@
+Hi,
+1. Clone this project.
+2. Import the POSTMAN collection into your windows POSTMAN application
+3. Update your env file 
+    Only Update you need to do is:
+        1. EMAIL_USER=<ENTER THE EMAIL ADDRESS>
+        2. EMAIL_PASS=<GENERATE A APP PASSWORD & USE IT HERE WITHOUT SPACES>
+
+4. Steps to Generate a APP Password , if you are not aware of it.
+    try this direct link: https://myaccount.google.com/apppasswords
+    and you will recieve a 16 digit code in there use it in EMAIL_PASS without space.
+5. Install all the required dependencies    
+6. Now Please run command - npm run dev - it will boot your Node-Express Project.
+7. Once everything is in place please check in the console if you are getting the below response or not:
+
+    $ npm run dev
+
+    > mycontrol-api@1.0.0 dev
+    > nodemon app.js
+
+    [nodemon] 2.0.22
+    [nodemon] to restart at any time, enter `rs`
+    [nodemon] watching path(s): *.*
+    [nodemon] watching extensions: js,mjs,json
+    [nodemon] starting `node app.js`
+    Connected to MongoDB
+    Server running on port 3000
+
+    If you are able to see these data then you are in a position to test the application end to end.
+8. There is a certain steps and the sequence you need to test the application make sure you only follow
+   the same.
+9. I'll provide a complete, step-by-step testing sequence to verify all functionality of the application. I'll include all request details and expected responses.
+    
+    
+    TESTING SEQUENCE:
+
+    CREATE ACCOUNT
+
+    httpCopyPOST http://localhost:3000/api/user/create
+    Content-Type: application/json
+
+    Body:
+    {
+        "email": "your.actual@gmail.com",
+        "name": "Test User",
+        "phone": "1234567890",
+        "city": "New York",
+        "state": "NY"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 201,
+        "message": "Account created successfully. Verification code sent to email.",
+        "data": {
+            "code_sent": true
+        },
+        "errors": null
+    }
+    → Check your email for verification code (Let's say code is "ABC123")
+
+    VALIDATE ACCOUNT
+
+    httpCopyPOST http://localhost:3000/api/user/validate
+    Content-Type: application/json
+
+    Body:
+    {
+        "email": "your.actual@gmail.com",
+        "code": "ABC123"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "Email verified successfully",
+        "data": {
+            "auth_token": "eyJhbGciOiJ..."  // Save this token!
+        },
+        "errors": null
+    }
+
+    SET INITIAL PASSWORD
+
+    httpCopyPOST http://localhost:3000/api/user/update-password
+    Content-Type: application/json
+    auth-token: [Token from previous step]
+
+    Body:
+    {
+        "password": "SecurePass123!"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "Password updated successfully",
+        "data": null,
+        "errors": null
+    }
+
+    LOGIN WITH NEW PASSWORD
+
+    httpCopyPOST http://localhost:3000/api/user/login
+    Content-Type: application/json
+
+    Body:
+    {
+        "email": "your.actual@gmail.com",
+        "password": "SecurePass123!"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "Login successful",
+        "data": {
+            "auth_token": "eyJhbGciOiJ..."  // New token
+        },
+        "errors": null
+    }
+
+    TEST FORGOT PASSWORD
+
+    httpCopyPOST http://localhost:3000/api/user/forgot-password
+    Content-Type: application/json
+
+    Body:
+    {
+        "email": "your.actual@gmail.com"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "Password reset code sent to email",
+        "data": {
+            "code_sent": true
+        },
+        "errors": null
+    }
+    → Check your email for reset code (Let's say "XYZ789")
+
+    VALIDATE RESET CODE
+
+    httpCopyPOST http://localhost:3000/api/user/validate-reset-code
+    Content-Type: application/json
+
+    Body:
+    {
+        "email": "your.actual@gmail.com",
+        "code": "XYZ789"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "Code verified successfully",
+        "data": {
+            "auth_token": "eyJhbGciOiJ..."  // New token
+        },
+        "errors": null
+    }
+
+    UPDATE PASSWORD AFTER RESET
+
+    httpCopyPOST http://localhost:3000/api/user/update-password
+    Content-Type: application/json
+    auth-token: [Token from previous step]
+
+    Body:
+    {
+        "password": "NewSecurePass123!"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "Password updated successfully",
+        "data": null,
+        "errors": null
+    }
+
+    LOGIN WITH NEW PASSWORD
+
+    httpCopyPOST http://localhost:3000/api/user/login
+    Content-Type: application/json
+
+    Body:
+    {
+        "email": "your.actual@gmail.com",
+        "password": "NewSecurePass123!"
+    }
+
+    LOGOUT
+
+    httpCopyPOST http://localhost:3000/api/user/logout
+    auth-token: [Token from login]
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "Logout successful",
+        "data": null,
+        "errors": null
+    }
+
+    FINALLY, REMOVE USER (Optional, for testing cleanup)
+
+    httpCopyDELETE http://localhost:3000/api/user/remove
+    Content-Type: application/json
+    auth-token: [Valid token]
+
+    Body:
+    {
+        "email": "your.actual@gmail.com"
+    }
+    Expected Response:
+    jsonCopy{
+        "status": "success",
+        "code": 200,
+        "message": "User account removed successfully",
+        "data": null,
+        "errors": null
+    }
+    Important Notes:
+
+    Replace "your.actual@gmail.com" with your real email
+    Save the auth_token after each login/validation
+    Use the actual verification/reset codes from your emails
+    Test each step in sequence
+    Each step depends on the success of previous steps
+    Keep track of the current password as you update it
+
+
+
+    .env file Content:
+
+
+    # Server Configuration
+    PORT=3000
+    NODE_ENV=development
+
+    # MongoDB Configuration
+    MONGODB_URI=mongodb://localhost:27017/mycontrol
+
+    # JWT Configuration
+    JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+    # Email Configuration
+    EMAIL_HOST=smtp.gmail.com
+    EMAIL_PORT=587
+    EMAIL_USER=<ENTER THE EMAIL ADDRESS>
+    EMAIL_PASS=<GENERATE A APP PASSWORD & USE IT HERE WITHOUT SPACES>
