@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const HubSchema = new mongoose.Schema({
     business_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Business', required: true },
     hub_status: { type: String, enum: ['connect', 'purchase'], required: true },
@@ -6,4 +7,5 @@ const HubSchema = new mongoose.Schema({
       serial_number: { type: String, required: true },
     }],
   });
+  module.exports = mongoose.model('Hub', HubSchema);
   

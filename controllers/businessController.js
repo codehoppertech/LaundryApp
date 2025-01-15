@@ -2,6 +2,7 @@ const Business = require('../models/Business');
 
 exports.createBusiness = async (req, res) => {
   try {
+    console.log("body",req.body);
     const { business_name } = req.body;
     const business = new Business({ business_name });
     await business.save();

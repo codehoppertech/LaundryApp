@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const BusinessSchema = new mongoose.Schema({
     business_name: { type: String, required: true },
     locations: [{
@@ -10,3 +11,4 @@ const BusinessSchema = new mongoose.Schema({
       zipcode: String,
     }],
   });
+  module.exports = mongoose.model('Business', BusinessSchema);

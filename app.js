@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const config = require('./config/config');
 const userRoutes = require('./routes/user.routes');
+const businessRoutes = require('./routes/businessRoutes');
+const hubRoutes = require('./routes/hubRoutes');
 const { errorResponse } = require('./utils/response');
 
 // Initialize express app
@@ -26,7 +28,8 @@ app.use('/api/', limiter);
 
 // Routes
 app.use('/api/user', userRoutes);
-
+app.use('/api/business', businessRoutes);
+app.use('/api/hub', hubRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Server is healthy' });
