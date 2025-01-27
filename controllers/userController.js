@@ -1,4 +1,4 @@
-const User = require('../models/user.model');
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const config = require('../config/config');
@@ -232,7 +232,173 @@ const removeUser = async (req, res) => {
         return errorResponse(res, 500, 'Error removing user');
     }
 };
+// Fetch User Profile Details
+const fetchUserProfileDetails = async (req, res) => {
+    try {
+      const authToken = req.headers['auth-token'];
+  
+      if (!authToken) {
+        return res.status(401).json({
+          status: 'error',
+          code: 401,
+          message: 'Invalid or expired auth-token.',
+          errors: null,
+        });
+      }
+  
+      const user = await User.findOne({ authToken });
+  
+      if (!user) {
+        return res.status(404).json({
+          status: 'error',
+          code: 404,
+          message: 'User not found.',
+          errors: null,
+        });
+      }
+  
+      res.status(200).json({
+        status: 'success',
+        code: 200,
+        message: 'Profile details fetched successfully.',
+        data: {
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          city: user.city,
+          state: user.state,
+          password_change_link: '/api/user/change-password',
+        },
+        errors: null,
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        code: 500,
+        message: 'Server error.',
+        errors: error.message,
+      });
+    }
+  };
+  
+  // Edit User Profile Details
+  const editUserProfileDetails = async (req, res) => {
+    try {
+      const authToken = req.headers['auth-token'];
+      const { name, phone, city, state } = req.body;
+  
+      if (!authToken) {
+        return res.status(401).json({
+          status: 'error',
+          code: 401,
+          message: 'Invalid or expired auth-token.',
+          errors: null,
+        });
+      }
+  
+      if (!name || !phone || !city || !state || !/^\+1-[0-9]{3}-[0-9]{3}-[0-9]{4}$/.test(phone)) {
+        return res.status(400).json({
+          status: 'error',
+          code: 400,
+          message: 'Missing or invalid parameters.',
+          errors: null,
+        });
+      }
+  
+      const user = await User.findOneAndUpdate(
+        { authToken },
+        { name, phone, city, state },
+        { new: true }
+      );
+  
+      if (!user) {
+        return res.status(403).json({
+          status: 'error',
+          code: 403,
+          message: 'Unauthorized to update profile.',
+          errors: null,
+        });
+      }
+  
+      res.status(200).json({
+        status: 'success',
+        code: 200,
+        message: 'Profile details updated successfully.',
+        data: {
+          name: user.name,
+          phone: user.phone,
+          city: user.city,
+          state: user.state,
+        },
+        errors: null,
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        code: 500,
+        message: 'Server error.',
+        errors: error.message,
+      });
+    }
+  };
+  
+  // Change Password
+  const changePassword = async (req, res) => {
+    try {
+      const authToken = req.headers['auth-token'];
+      const { current_password, new_password } = req.body;
+  
+      if (!authToken) {
+        return res.status(401).json({
+          status: 'error',
+          code: 401,
+          message: 'Invalid or expired auth-token.',
+          errors: null,
+        });
+      }
+  
+      if (!current_password || !new_password || new_password.length < 6) {
+        return res.status(400).json({
+          status: 'error',
+          code: 400,
+          message: 'Invalid password format.',
+          errors: null,
+        });
+      }
+  
+      const user = await User.findOne({ authToken });
+  
+      if (!user || user.password !== current_password) {
+        return res.status(401).json({
+          status: 'error',
+          code: 401,
+          message: 'Incorrect current password.',
+          errors: null,
+        });
+      }
+  
+      user.password = new_password;
+      await user.save();
+  
+      res.status(200).json({
+        status: 'success',
+        code: 200,
+        message: 'Password changed successfully.',
+        data: null,
+        errors: null,
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        code: 500,
+        message: 'Server error.',
+        errors: error.message,
+      });
+    }
+  };
+  
 
+  
 module.exports = {
     createAccount,
     validateAccount,
@@ -241,5 +407,8 @@ module.exports = {
     forgotPassword,
     validateResetCode,
     logout,
-    removeUser
+    removeUser,
+    fetchUserProfileDetails,
+    editUserProfileDetails,
+    changePassword
 };

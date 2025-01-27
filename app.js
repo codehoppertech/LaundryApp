@@ -4,20 +4,24 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const config = require('./config/config');
-const userRoutes = require('./routes/user.routes');
+const userRoutes = require('./routes/userRoutes');
 const businessRoutes = require('./routes/businessRoutes');
 const hubRoutes = require('./routes/hubRoutes');
 const { errorResponse } = require('./utils/response');
-
+const dotenv = require('dotenv');
+//const notificationRoutes = require('./routes/notificationRoutes');
+const userManagementRoutes = require('./routes/userManagementRoutes');
+const fileUpload = require('express-fileupload');
 // Initialize express app
 const app = express();
-
+dotenv.config();
 // Security middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(express.json());
+app.use(fileUpload());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -30,6 +34,8 @@ app.use('/api/', limiter);
 app.use('/api/user', userRoutes);
 app.use('/api/business', businessRoutes);
 app.use('/api/hub', hubRoutes);
+//app.use('/api/notifications', notificationRoutes);
+app.use('/api/businessusers', userManagementRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Server is healthy' });
