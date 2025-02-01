@@ -1,9 +1,9 @@
 const express = require("express");
-const hubController = require("../controllers/hubController");
+const machineController = require("../controllers/machineController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-router.post("/add", authMiddleware, hubController.addHub);
+router.post("/add", authMiddleware, machineController.addMachine);
 
 module.exports = router;

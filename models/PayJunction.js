@@ -1,10 +1,12 @@
-const mongoose = require('mongoose');
-  // models/PayJunction.js
-const payJunctionSchema = new mongoose.Schema({
-  business_id: { type:String, ref: 'Business', required: true },
-  webshop_id: { type: String, required: true },
-  api_user: { type: String, required: true },
-  api_password: { type: String, required: true }
+const mongoose = require("mongoose");
+
+const PayJunctionSchema = new mongoose.Schema({
+  businessId: { type: mongoose.Schema.Types.ObjectId, ref: "Business", required: true },
+  locationId: { type: mongoose.Schema.Types.ObjectId, ref: "Location", required: true },
+  webshopId: { type: String, required: true },
+  apiUser: { type: String, required: true },
+  apiPassword: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('PayJunction', payJunctionSchema);
+module.exports = mongoose.model("PayJunction", PayJunctionSchema);

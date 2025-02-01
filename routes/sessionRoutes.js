@@ -1,9 +1,9 @@
 const express = require("express");
-const hubController = require("../controllers/hubController");
+const sessionController = require("../controllers/sessionController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-router.post("/add", authMiddleware, hubController.addHub);
+router.post("/invalidate", authMiddleware, sessionController.invalidateSession);
 
 module.exports = router;
