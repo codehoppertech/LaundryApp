@@ -1,14 +1,20 @@
 const mongoose = require("mongoose");
 
-const UserSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
+const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  phone: { type: String, required: true },
-  city: { type: String, required: true },
-  state: { type: String, required: true },
-  passwordHash: { type: String, required: true }, // Hashed password
-  isVerified: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  role: {
+    type: String,
+    required: true,
+    enum: ["Technician", "Admin", "Internal Staff", "External Staff","Business Owner"],
+  },
+  business: { type: mongoose.Schema.Types.ObjectId, ref: "Business" }, // Reference to Business
+  location_permissions: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "Location" }, // Array of Locations the user can access
+  ],
+  password: { type: String }, // For authentication (if required)
+  invitation_token: { type: String }, // For role invitation
+  accepted_role: { type: Boolean, default: false },
 });
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = mongoose.model("User", userSchema);

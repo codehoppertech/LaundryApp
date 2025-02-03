@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
 
-const BusinessSchema = new mongoose.Schema({
-  businessName: { type: String, required: true },
-  ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  createdAt: { type: Date, default: Date.now },
+const businessSchema = new mongoose.Schema({
+  business_id: { type: String, unique: true }, // Ensure uniqueness in MongoDB
+  business_name: { type: String, required: true },
 });
 
-module.exports = mongoose.model("Business", BusinessSchema);
+module.exports = mongoose.model("Business", businessSchema);

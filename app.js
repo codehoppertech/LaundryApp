@@ -3,15 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const config = require('./config/config');
-const userRoutes = require('./routes/userRoutes');
-const businessRoutes = require('./routes/businessRoutes');
-const hubRoutes = require('./routes/hubRoutes');
-const { errorResponse } = require('./utils/response');
+const userRoutes = require("./routes/userRoutes");
+const businessRoutes = require("./routes/businessRoutes");
+const locationRoutes = require("./routes/locationRoutes");
+const hubRoutes = require("./routes/hubRoutes");
+const machineRoutes = require("./routes/machineRoutes");
 const dotenv = require('dotenv');
-//const notificationRoutes = require('./routes/notificationRoutes');
-const userManagementRoutes = require('./routes/userManagementRoutes');
 const fileUpload = require('express-fileupload');
+const config = require('./config/config');
 // Initialize express app
 const app = express();
 dotenv.config();
@@ -31,11 +30,11 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Routes
-app.use('/api/user', userRoutes);
-app.use('/api/business', businessRoutes);
-app.use('/api/hub', hubRoutes);
-//app.use('/api/notifications', notificationRoutes);
-app.use('/api/businessusers', userManagementRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/business", businessRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/api/hub", hubRoutes);
+app.use("/api/machine", machineRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Server is healthy' });

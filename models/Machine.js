@@ -1,13 +1,17 @@
 const mongoose = require("mongoose");
 
-const MachineSchema = new mongoose.Schema({
-  hubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", required: true },
-  portPosition: { type: Number },
-  name: { type: String, required: true },
-  mode: { type: String, enum: ["washer", "dryer", "combo"], required: true },
-  price: { type: Number, required: true },
-  pulsesPerSecond: { type: Number, required: true },
-  enabled: { type: Boolean, default: true },
+const machineSchema = new mongoose.Schema({
+  hub: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", required: true }, // Reference to Hub
+  port_position: { type: String, required: true }, // Port position
+  name: { type: String, required: true }, // Machine name
+  mode: {
+    type: String,
+    required: true,
+    enum: ["washer", "drier", "combo"], // Enum for machine mode
+  },
+  price: { type: Number, required: true }, // Price in USD
+  pulses_per_second: { type: Number, required: true }, // Pulses per second
+  enabled: { type: Boolean, required: true }, // Is the machine enabled or not
 });
 
-module.exports = mongoose.model("Machine", MachineSchema);
+module.exports = mongoose.model("Machine", machineSchema);
