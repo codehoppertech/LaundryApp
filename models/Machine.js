@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const machineSchema = new mongoose.Schema({
+  machine_id: { type: String, unique: true },
   hub: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", required: true }, // Reference to Hub
   port_position: { type: String, required: true }, // Port position
   name: { type: String, required: true }, // Machine name

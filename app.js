@@ -11,6 +11,8 @@ const machineRoutes = require("./routes/machineRoutes");
 const dotenv = require('dotenv');
 const fileUpload = require('express-fileupload');
 const config = require('./config/config');
+const roleRoutes = require("./routes/roleRoutes");
+
 // Initialize express app
 const app = express();
 dotenv.config();
@@ -35,6 +37,7 @@ app.use("/api/business", businessRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/api/hub", hubRoutes);
 app.use("/api/machine", machineRoutes);
+app.use("/api/role", roleRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Server is healthy' });

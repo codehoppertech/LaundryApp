@@ -57,9 +57,21 @@ const generatePasswordResetEmail = (code) => {
     <p>If you did not request this, please ignore this email.</p>
   `;
 };
+/**
+ * Generate password reset email HTML
+ */
+const getInviteUserDetails = (role) => {
+  return `
+    <h1>You are inviced for below role</h1>
+    <p>Please see the details:</p>
+    <h2 style="color: #2196F3;">${role}</h2>
+    <p>Request you to register your self .</p>
+  `;
+};
 
 module.exports = {
   sendEmail,
   generateVerificationEmail,
-  generatePasswordResetEmail
+  generatePasswordResetEmail,
+  getInviteUserDetails
 };

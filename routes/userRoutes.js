@@ -1,20 +1,40 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/userController"); // Assuming your controller is in the controllers folder
+const {
+  createAccount,
+  profile,
+  inviteUser,
+  validateAccount,
+  updatePassword,
+  login,
+  validateResetCode,
+  forgotPassword,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  removeUser,
+  logout,
+  fetchUserProfileDetails,
+  editUserProfileDetails,
+  changePassword
+} = require("../controllers/userController");
 
-// Create a new User
-router.post("/users", userController.createUser);
-
-// Get all Users
-router.get("/users", userController.getAllUsers);
-
-// Get User by ID
-router.get("/users/:id", userController.getUserById);
-
-// Update User by ID
-router.put("/users/:id", userController.updateUser);
-
-// Delete User by ID
-router.delete("/users/:id", userController.deleteUser);
-
+// Routes
+router.post("/create-account", createAccount);
+router.post("/invite", inviteUser);
+router.post("/validate-account", validateAccount);
+router.put("/update-password", updatePassword);
+router.put("/validate-reset-code", validateResetCode);
+router.post("/login", login);
+router.post("/forgot-password", forgotPassword);
+router.post('/logout', logout);
+router.get("/users", getAllUsers);
+router.get("/users/:id", getUserById);
+router.put("/users/:id", updateUser);
+router.delete("/remove", removeUser);
+router.delete("/users/:id", deleteUser);
+router.get('/profile', fetchUserProfileDetails);
+router.put('/profile', editUserProfileDetails);
+router.post('/change-password', changePassword);
 module.exports = router;

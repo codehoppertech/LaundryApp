@@ -1,6 +1,6 @@
 const Machine = require("../models/Machine"); // Assuming the model is located in the models folder
 const Hub = require("../models/Hub"); // Assuming the model is located in the models folder
-
+const Counter = require('../models/Counter');
 // Create a new Machine
 exports.createMachine = async (req, res) => {
   try {
@@ -11,8 +11,22 @@ exports.createMachine = async (req, res) => {
     if (!hub) {
       return res.status(404).json({ message: "Hub not found" });
     }
+    let counter = await Counter.findOne({ name: 'machine_id' });
 
+    // If no counter exists, create one
+    if (!counter) {
+      counter = new Counter({ name: 'machine_id', count: 0 });
+      await counter.save();
+    }
+
+    // Increment the counter
+    counter.count += 1;
+    await counter.save();
+
+    // Generate business_id based on counter (Business001, Business002, etc.)
+    const machine_id = `Machine${String(counter.count).padStart(3, '0')}`; // Business001, Business002, ...
     const newMachine = new Machine({
+      machine_id,
       hub: hub._id, // Use the ObjectId of the hub
       port_position,
       name,
