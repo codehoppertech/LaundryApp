@@ -2,7 +2,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const config = require("../config/config");
-const { sendEmail, generateVerificationEmail, generatePasswordResetEmail } = require("../utils/email");
+const { sendEmail, generateVerificationEmail, generatePasswordResetEmail,getInviteUserDetails } = require("../utils/email");
 const { successResponse, errorResponse } = require("../utils/response");
 
 // Generate random code for verification/reset
