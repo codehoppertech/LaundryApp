@@ -6,7 +6,7 @@ const { sendEmail, generateVerificationEmail, generatePasswordResetEmail,getInvi
 const { successResponse, errorResponse } = require("../utils/response");
 
 // Generate random code for verification/reset
-const generateCode = () => 1234;
+const generateCode = () => 123456;
 
 // Generate JWT token
 const generateToken = (user) => jwt.sign({ userId: user._id, role: user.role }, config.jwtSecret, { expiresIn: "24h" });
