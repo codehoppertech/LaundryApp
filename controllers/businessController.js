@@ -1,14 +1,29 @@
 const Business = require('../models/Business');
 const Counter = require('../models/Counter');
-
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 // Create a new Business with unique business_id
 exports.createBusiness = async (req, res) => {
   try {
+    const authToken = req.headers["auth-token"];
+    
+        if (!authToken) {
+          return res.status(401).json({
+            status: 'error',
+            code: 401,
+            message: 'Invalid or expired auth-token.',
+            errors: null,
+          });
+        }
+    
+        const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+        req.user = verified;
+        const _id = req.user.userId;
     const { business_name } = req.body;
-
+    console.log("business_name",business_name);
     // Fetch the current counter for business_id
     let counter = await Counter.findOne({ name: 'business_id' });
-
+    console.log("counter", counter);
     // If no counter exists, create one
     if (!counter) {
       counter = new Counter({ name: 'business_id', count: 0 });

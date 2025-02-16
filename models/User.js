@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Guest', 'Active','Verified','Registered','guest'], // Status of the user: 'guest' for invited, 'approved' for fully registered
+      enum: ['Guest', 'Active','Verified','Registered','guest','owner'], // Status of the user: 'guest' for invited, 'approved' for fully registered
       default: 'Guest', // Default to guest if user is invited
     },
     role: {

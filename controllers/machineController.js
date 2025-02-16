@@ -1,13 +1,29 @@
 const Machine = require("../models/Machine"); // Assuming the model is located in the models folder
 const Hub = require("../models/Hub"); // Assuming the model is located in the models folder
 const Counter = require('../models/Counter');
+const jwt = require("jsonwebtoken");
 // Create a new Machine
 exports.createMachine = async (req, res) => {
   try {
+        const authToken = req.headers["auth-token"];
+        
+            // Check for missing auth token
+            if (!authToken) {
+              return res.status(401).json({
+                status: "error",
+                code: 401,
+                message: "Missing authentication token.",
+                errors: null,
+              });
+            }
+        
+            // Verify token and extract user details
+            const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+            req.user = verified;
     const { hub_id, port_position, name, mode, price, pulses_per_second, enabled } = req.body;
 
     // Find the hub by hub_id
-    const hub = await Hub.findOne({ hub_id });
+    const hub = await Hub.findById(hub_id);
     if (!hub) {
       return res.status(404).json({ message: "Hub not found" });
     }
@@ -67,14 +83,78 @@ exports.getMachineById = async (req, res) => {
     res.status(500).json({ message: "Error fetching machine", error: err.message });
   }
 };
+ // Adjust the path based on your project structure
+
+exports.getAllMachinesByHubId = async (req, res) => {
+  try {
+        const authToken = req.headers["auth-token"];
+        
+            // Check for missing auth token
+            if (!authToken) {
+              return res.status(401).json({
+                status: "error",
+                code: 401,
+                message: "Missing authentication token.",
+                errors: null,
+              });
+            }
+        
+            // Verify token and extract user details
+            const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+            req.user = verified;
+    const { hub_id } = req.params; // Extract hub_id from URL params
+
+    // Find all machines that belong to the given hub_id
+    const machines = await Machine.find({ hub: hub_id });
+
+    if (!machines || machines.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "No machines found for the given hub.",
+        errors: null,
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      code: 200,
+      message: "Machines retrieved successfully.",
+      data: machines,
+      errors: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Error retrieving machines.",
+      errors: err.message,
+    });
+  }
+};
 
 // Update Machine by ID
 exports.updateMachine = async (req, res) => {
   try {
+    const authToken = req.headers["auth-token"];
+        
+    // Check for missing auth token
+    if (!authToken) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Missing authentication token.",
+        errors: null,
+      });
+    }
+
+    // Verify token and extract user details
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
     const { hub_id, port_position, name, mode, price, pulses_per_second, enabled } = req.body;
 
     // Find the hub by hub_id
-    const hub = await Hub.findOne({ hub_id });
+    const hub = await Hub.findById(hub_id);
     if (!hub) {
       return res.status(404).json({ message: "Hub not found" });
     }

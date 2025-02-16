@@ -1,14 +1,34 @@
 const Location = require('../models/Location');
 const Counter = require('../models/Counter');
 const Business = require('../models/Business');
-
+const User = require("../models/User");
 // Create a new Location with unique location_id based on business_id
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const multer = require("multer");
+const path = require("path");
+// Define storage FIRST
+
 exports.createLocation = async (req, res) => {
   try {
     const { business_id, location_name, address_line_1, address_line_2, city, state, zipcode, schedule } = req.body;
+    const authToken = req.headers["auth-token"];
+
+    if (!authToken) {
+      return res.status(401).json({
+        status: 'error',
+        code: 401,
+        message: 'Invalid or expired auth-token.',
+        errors: null,
+      });
+    }
+
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+    const _id = req.user.userId;
 
     // Find the associated business by business_id
-    const business = await Business.findOne({ business_id });
+    const business = await Business.findById(business_id);
 
     if (!business) {
       return res.status(404).json({ message: 'Business not found' });
@@ -32,27 +52,126 @@ exports.createLocation = async (req, res) => {
 
     // Create a new location with the generated location_id
     const newLocation = new Location({
-      location_id,   // Generated location_id
+      location_id, // Generated location_id
       location_name,
       address_line_1,
       address_line_2,
       city,
       state,
       zipcode,
-      business: business._id,  // Reference to the business
+      business: business._id, // Reference to the business
       schedule,
     });
 
     const savedLocation = await newLocation.save();
+
+    const user = await User.findByIdAndUpdate(
+      _id,
+      { $set: { [`role.${savedLocation._id}`]: "owner" } }, // Update only this locationId in the role Map
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(403).json({
+        status: 'error',
+        code: 403,
+        message: 'Unauthorized to update profile.',
+        errors: null,
+      });
+    }
+
     res.status(201).json(savedLocation);
   } catch (err) {
     res.status(500).json({ message: 'Error creating location', error: err.message });
   }
 };
 
+exports.updatePayJunctionDetails = async (req, res) => {
+  try {
+    const { location_id, webshop_id, api_user, api_password } = req.body;
+    const authToken = req.headers["auth-token"];
+
+    // Check for missing auth token
+    if (!authToken) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Missing authentication token.",
+        errors: null,
+      });
+    }
+
+    // Verify token and extract user details
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+    
+    // Ensure location_id is provided
+    if (!location_id || !webshop_id || !api_user || !api_password) {
+      return res.status(400).json({
+        status: "error",
+        code: 400,
+        message: "Missing required fields.",
+        errors: null,
+      });
+    }
+
+    // Find the location by location_id
+    const location = await Location.findById(location_id);
+
+    if (!location) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Location not found.",
+        errors: null,
+      });
+    }
+
+    // Update PayJunction details
+    location.payjunction_details = {
+      webshop_id,
+      api_user,
+      api_password,
+    };
+
+    await location.save();
+
+    res.status(201).json({
+      status: "success",
+      code: 201,
+      message: "Business location PayJunction details updated successfully.",
+      data: {
+        location_id: location._id,
+      },
+      errors: null,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Internal server error.",
+      errors: err.message,
+    });
+  }
+};
 // Get all Locations for a Business
 exports.getLocationsByBusiness = async (req, res) => {
   try {
+    const authToken = req.headers["auth-token"];
+          
+              // Check for missing auth token
+              if (!authToken) {
+                return res.status(401).json({
+                  status: "error",
+                  code: 401,
+                  message: "Missing authentication token.",
+                  errors: null,
+                });
+              }
+          
+              // Verify token and extract user details
+              const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+              req.user = verified;
     const locations = await Location.find({ business: req.params.businessId }).populate('business');
 
     res.status(200).json(locations);
@@ -64,6 +183,21 @@ exports.getLocationsByBusiness = async (req, res) => {
 // Get Location by ID
 exports.getLocationById = async (req, res) => {
   try {
+    const authToken = req.headers["auth-token"];
+          
+              // Check for missing auth token
+              if (!authToken) {
+                return res.status(401).json({
+                  status: "error",
+                  code: 401,
+                  message: "Missing authentication token.",
+                  errors: null,
+                });
+              }
+          
+              // Verify token and extract user details
+              const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+              req.user = verified;
     const location = await Location.findById(req.params.id).populate('business');
 
     if (!location) {
@@ -79,6 +213,21 @@ exports.getLocationById = async (req, res) => {
 // Update Location by ID
 exports.updateLocation = async (req, res) => {
   try {
+    const authToken = req.headers["auth-token"];
+          
+              // Check for missing auth token
+              if (!authToken) {
+                return res.status(401).json({
+                  status: "error",
+                  code: 401,
+                  message: "Missing authentication token.",
+                  errors: null,
+                });
+              }
+          
+              // Verify token and extract user details
+              const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+              req.user = verified;
     const { location_name, address_line_1, address_line_2, city, state, zipcode, schedule } = req.body;
 
     const updatedLocation = await Location.findByIdAndUpdate(
@@ -100,6 +249,21 @@ exports.updateLocation = async (req, res) => {
 // Delete Location by ID
 exports.deleteLocation = async (req, res) => {
   try {
+    const authToken = req.headers["auth-token"];
+          
+              // Check for missing auth token
+              if (!authToken) {
+                return res.status(401).json({
+                  status: "error",
+                  code: 401,
+                  message: "Missing authentication token.",
+                  errors: null,
+                });
+              }
+          
+              // Verify token and extract user details
+              const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+              req.user = verified;
     const deletedLocation = await Location.findByIdAndDelete(req.params.id);
 
     if (!deletedLocation) {
@@ -109,5 +273,196 @@ exports.deleteLocation = async (req, res) => {
     res.status(200).json({ message: 'Location deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting location', error: err.message });
+  }
+};
+
+
+
+
+
+// Define Multer storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/logos/"); // Ensure this directory exists
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${req.params.location_id}_${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+
+// Multer file filter (only allow images)
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files are allowed!"), false);
+  }
+};
+
+// Upload middleware
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Limit to 5MB
+}).single("logo");
+
+// Upload Location Logo Controller
+exports.uploadLogo  = async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({
+        status: "error",
+        code: 400,
+        message: err.message || "File upload error",
+        errors: err,
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        status: "error",
+        code: 400,
+        message: "No file uploaded.",
+        errors: null,
+      });
+    }
+
+    try {
+          const authToken = req.headers["auth-token"];
+          
+              // Check for missing auth token
+              if (!authToken) {
+                return res.status(401).json({
+                  status: "error",
+                  code: 401,
+                  message: "Missing authentication token.",
+                  errors: null,
+                });
+              }
+          
+              // Verify token and extract user details
+              const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+              req.user = verified;
+      const location = await Location.findOne({ location_id: req.params.location_id });
+
+      if (!location) {
+        return res.status(404).json({
+          status: "error",
+          code: 404,
+          message: "Location not found.",
+          errors: null,
+        });
+      }
+
+      location.logo_url = `/uploads/logos/${req.file.filename}`;
+      await location.save();
+
+      res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "Logo uploaded successfully.",
+        data: { logo_url: location.logo_url },
+        errors: null,
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: "error",
+        code: 500,
+        message: "Internal server error.",
+        errors: error.message,
+      });
+    }
+  });
+};
+
+// Update Customize App
+exports.updateCustomizeApp = async (req, res) => {
+  try {
+        const authToken = req.headers["auth-token"];
+        
+            // Check for missing auth token
+            if (!authToken) {
+              return res.status(401).json({
+                status: "error",
+                code: 401,
+                message: "Missing authentication token.",
+                errors: null,
+              });
+            }
+        
+            // Verify token and extract user details
+            const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+            req.user = verified;
+    const { location_id } = req.params;
+    const { primary_color, secondary_color, font_color } = req.body;
+
+    if (!primary_color || !secondary_color || !font_color) {
+      return res.status(400).json({ status: "error", code: 400, message: "All fields are required.", errors: null });
+    }
+
+    const location = await Location.findById(location_id );
+
+    if (!location) {
+      return res.status(404).json({ status: "error", code: 404, message: "Location not found.", errors: null });
+    }
+
+    location.customize_app = { primary_color, secondary_color, font_color };
+    await location.save();
+
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      message: "Customer app customization updated successfully.",
+      data: null,
+      errors: null,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", code: 500, message: "Error updating customize app.", errors: error.message });
+  }
+};
+
+// Update Schedule
+exports.updateSchedule = async (req, res) => {
+  try {
+        const authToken = req.headers["auth-token"];
+        
+            // Check for missing auth token
+            if (!authToken) {
+              return res.status(401).json({
+                status: "error",
+                code: 401,
+                message: "Missing authentication token.",
+                errors: null,
+              });
+            }
+        
+            // Verify token and extract user details
+            const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+            req.user = verified;
+    const { location_id } = req.params;
+    const schedule = req.body;
+
+    if (!Array.isArray(schedule) || schedule.length === 0) {
+      return res.status(400).json({ status: "error", code: 400, message: "Schedule data is required.", errors: null });
+    }
+
+    const location = await Location.findById(location_id);
+
+    if (!location) {
+      return res.status(404).json({ status: "error", code: 404, message: "Location not found.", errors: null });
+    }
+
+    location.schedule = schedule;
+    await location.save();
+
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      message: "Location schedule updated successfully.",
+      data: null,
+      errors: null,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", code: 500, message: "Error updating schedule.", errors: error.message });
   }
 };

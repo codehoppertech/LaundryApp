@@ -1,21 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const hubController = require('../controllers/hubController');
-
+const {
+    createHub,
+    getAllHubs,
+    getHubById,
+    updateHubName,
+    deleteHub,
+    addOrUpdatePortsToHub
+     } = require("../controllers/hubController");
+// Middleware to allow only BusinessOwnersBusiness Owner
+//const requireBusinessOwner = authMiddleware("Business Owner");
 // Create a new Hub
-router.post('/hubs', hubController.createHub);
+router.post('/createHub', createHub);
 
 // Get all Hubs
-router.get('/hubs', hubController.getAllHubs);
+router.get('/getAllHubs', getAllHubs);
 
 // Get Hub by ID
-router.get('/hubs/:id', hubController.getHubById);
+router.get('/:id', getHubById);
 
 // Update Hub by ID
-router.put('/hubs/:id', hubController.updateHub);
-
+router.put('/updateHubName', updateHubName);
+router.put('/:hub_id/ports', addOrUpdatePortsToHub);
 // Delete Hub by ID
-router.delete('/hubs/:id', hubController.deleteHub);
+router.delete('/:id', deleteHub);
 
 module.exports = router;
 // {

@@ -30,7 +30,7 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later'
 });
 app.use('/api/', limiter);
-
+app.use("/uploads", express.static("uploads"));
 // Routes
 app.use("/api/user", userRoutes);
 app.use("/api/business", businessRoutes);

@@ -11,23 +11,38 @@
 
 
 const express = require('express');
+
 const router = express.Router();
-const locationController = require('../controllers/locationController');
+const {
+    createLocation,
+    getLocationsByBusiness,
+    getLocationById,
+    updateLocation,
+    deleteLocation,
+    updatePayJunctionDetails,
+    uploadLogo,
+    updateCustomizeApp,
+    updateSchedule
+     } = require("../controllers/locationController");
 
 // Create a new Location
-router.post('/locations', locationController.createLocation);
-
+router.post('/createLocation', createLocation);
+router.post('/payjunction', updatePayJunctionDetails);
 // Get all Locations by Business ID
-router.get('/locations/business/:businessId', locationController.getLocationsByBusiness);
+router.get('/getLocationsByBusiness/business/:businessId', getLocationsByBusiness);
+router.post("/:location_id/logo",uploadLogo);
+router.put("/:location_id/customize-app",updateCustomizeApp);
+router.put("/:location_id/schedule",updateSchedule);
+
 
 // Get a Location by ID
-router.get('/locations/:id', locationController.getLocationById);
+router.get('/:id', getLocationById);
 
 // Update a Location by ID
-router.put('/locations/:id', locationController.updateLocation);
+router.put('/:id', updateLocation);
 
 // Delete a Location by ID
-router.delete('/locations/:id', locationController.deleteLocation);
+router.delete('/deleteLocation/:id', deleteLocation);
 
 // // Get Location Count by Business ID
 // router.get('/locations/business/:businessId/count', locationController.getLocationCountByBusiness);

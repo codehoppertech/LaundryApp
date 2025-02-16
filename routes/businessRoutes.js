@@ -3,22 +3,30 @@ const router = express.Router();
 const businessController = require("../controllers/businessController");
 const authMiddleware = require("../middleware/authMiddleware");
 
+
+const {
+    createBusiness,
+    getAllBusinesses,
+    getBusinessById,
+    updateBusiness,
+    deleteBusiness
+     } = require("../controllers/businessController");
 // Middleware to allow only BusinessOwnersBusiness Owner
-const requireBusinessOwner = authMiddleware("Business Owner");
+//const requireBusinessOwner = authMiddleware("Business Owner");
 
 // Route to create a new business
-router.post("/businesses", requireBusinessOwner, businessController.createBusiness);
+router.post("/createBusiness", createBusiness);
 
 // Route to get all businesses
-router.get("/businesses", requireBusinessOwner, businessController.getAllBusinesses);
+router.get("/getAllBusinesses", getAllBusinesses);
 
 // Route to get a business by ID
-router.get("/businesses/:id", requireBusinessOwner, businessController.getBusinessById);
+router.get("/getBusinessById/:id",getBusinessById);
 
 // Route to update a business by ID
-router.put("/businesses/:id", requireBusinessOwner, businessController.updateBusiness);
+router.put("/updateBusiness/:id",updateBusiness);
 
 // Route to delete a business by ID
-router.delete("/businesses/:id", requireBusinessOwner, businessController.deleteBusiness);
+router.delete("/deleteBusiness/:id", deleteBusiness);
 
 module.exports = router;
