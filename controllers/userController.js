@@ -91,7 +91,19 @@ exports.inviteUser = async (req, res) => {
   try {
     const { email, name, roles } = req.body; 
     const existingUser = await User.findOne({ email });
-
+    const authToken =  req.headers["auth-token"];
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+    const userid = req.user.userId;
+    console.log("userid",userid);
+    if (!authToken) {
+      return res.status(401).json({
+        status: 'error',
+        code: 401,
+        message: 'Invalid or expired auth-token.',
+        errors: null,
+      });
+    }
     if (existingUser) {
       existingUser.name = name || existingUser.name; 
       existingUser.role = roles || existingUser.role; 
@@ -115,7 +127,7 @@ exports.inviteUser = async (req, res) => {
     return successResponse(res, 201, "User invited successfully. Please complete registration.");
   } catch (error) {
     console.error("Invite user error:", error);
-    return errorResponse(res, 500, "Error inviting user");
+    return errorResponse(res, 500, "Error inviting user",error);
   }
 };
 
