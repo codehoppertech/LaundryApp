@@ -7,26 +7,25 @@ exports.createBusiness = async (req, res) => {
   try {
     const authToken = req.headers["auth-token"];
     
-        if (!authToken) {
-          return res.status(401).json({
-            status: 'error',
-            code: 401,
-            message: 'Invalid or expired auth-token.',
-            errors: null,
-          });
-        }
-    
-        const verified = jwt.verify(authToken, process.env.JWT_SECRET);
-        req.user = verified;
-        const _id = req.user.userId;
+    if (!authToken) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Invalid or expired auth-token.",
+        errors: null,
+      });
+    }
+
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+    const _id = req.user.userId;
     const { business_name } = req.body;
-    console.log("business_name",business_name);
+
     // Fetch the current counter for business_id
-    let counter = await Counter.findOne({ name: 'business_id' });
-    console.log("counter", counter);
-    // If no counter exists, create one
+    let counter = await Counter.findOne({ name: "business_id" });
+    
     if (!counter) {
-      counter = new Counter({ name: 'business_id', count: 0 });
+      counter = new Counter({ name: "business_id", count: 0 });
       await counter.save();
     }
 
@@ -35,20 +34,36 @@ exports.createBusiness = async (req, res) => {
     await counter.save();
 
     // Generate business_id based on counter (Business001, Business002, etc.)
-    const business_id = `Business${String(counter.count).padStart(3, '0')}`; // Business001, Business002, ...
+    const business_id = `Business${String(counter.count).padStart(3, "0")}`;
 
     // Create a new business with the generated business_id
     const newBusiness = new Business({
       business_name,
-      business_id, // Assign the generated business_id
+      business_id,
     });
 
     const savedBusiness = await newBusiness.save();
-    res.status(201).json(savedBusiness);
+    
+    res.status(201).json({
+      status: "success",
+      code: 201,
+      message: "Business created successfully.",
+      data: {
+        business_id: savedBusiness._id,
+        business_name: savedBusiness.business_name,
+      },
+      errors: null,
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Error creating business', error: err.message });
+    res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Error creating business.",
+      errors: err.message,
+    });
   }
 };
+
 
 // Get all Businesses
 exports.getAllBusinesses = async (req, res) => {

@@ -19,6 +19,7 @@ exports.createLocation = async (req, res) => {
         status: 'error',
         code: 401,
         message: 'Invalid or expired auth-token.',
+        data: null,
         errors: null,
       });
     }
@@ -31,7 +32,13 @@ exports.createLocation = async (req, res) => {
     const business = await Business.findById(business_id);
 
     if (!business) {
-      return res.status(404).json({ message: 'Business not found' });
+      return res.status(404).json({
+        status: 'error',
+        code: 404,
+        message: 'Business not found.',
+        data: null,
+        errors: null,
+      });
     }
 
     // Fetch the current counter for location_id (based on business_id)
@@ -52,14 +59,14 @@ exports.createLocation = async (req, res) => {
 
     // Create a new location with the generated location_id
     const newLocation = new Location({
-      location_id, // Generated location_id
+      location_id,
       location_name,
       address_line_1,
       address_line_2,
       city,
       state,
       zipcode,
-      business: business._id, // Reference to the business
+      business: business._id,
       schedule,
     });
 
@@ -67,7 +74,7 @@ exports.createLocation = async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
       _id,
-      { $set: { [`role.${savedLocation._id}`]: "owner" } }, // Update only this locationId in the role Map
+      { $set: { [`role.${savedLocation._id}`]: "owner" } },
       { new: true }
     );
 
@@ -76,17 +83,32 @@ exports.createLocation = async (req, res) => {
         status: 'error',
         code: 403,
         message: 'Unauthorized to update profile.',
+        data: null,
         errors: null,
       });
     }
 
-    res.status(201).json(savedLocation);
+    res.status(201).json({
+      status: 'success',
+      code: 201,
+      message: 'Business location added successfully.',
+      data: {
+        location_id: savedLocation._id,
+      },
+      errors: null,
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Error creating location', error: err.message });
+    res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Error creating location.',
+      data: null,
+      errors: err.message,
+    });
   }
 };
 
-exports.updatePayJunctionDetails = async (req, res) => {
+exports.updatePayJunctionDetails = async (req, res) => { 
   try {
     const { location_id, webshop_id, api_user, api_password } = req.body;
     const authToken = req.headers["auth-token"];
@@ -97,6 +119,7 @@ exports.updatePayJunctionDetails = async (req, res) => {
         status: "error",
         code: 401,
         message: "Missing authentication token.",
+        data: null,
         errors: null,
       });
     }
@@ -111,6 +134,7 @@ exports.updatePayJunctionDetails = async (req, res) => {
         status: "error",
         code: 400,
         message: "Missing required fields.",
+        data: null,
         errors: null,
       });
     }
@@ -123,6 +147,7 @@ exports.updatePayJunctionDetails = async (req, res) => {
         status: "error",
         code: 404,
         message: "Location not found.",
+        data: null,
         errors: null,
       });
     }
@@ -136,13 +161,11 @@ exports.updatePayJunctionDetails = async (req, res) => {
 
     await location.save();
 
-    res.status(201).json({
+    res.status(200).json({
       status: "success",
-      code: 201,
-      message: "Business location PayJunction details updated successfully.",
-      data: {
-        location_id: location._id,
-      },
+      code: 200,
+      message: "PayJunction details added successfully.",
+      data: null,
       errors: null,
     });
   } catch (err) {
@@ -150,10 +173,12 @@ exports.updatePayJunctionDetails = async (req, res) => {
       status: "error",
       code: 500,
       message: "Internal server error.",
+      data: null,
       errors: err.message,
     });
   }
 };
+
 // Get all Locations for a Business
 exports.getLocationsByBusiness = async (req, res) => {
   try {

@@ -27,65 +27,8 @@ const generateHubId = async () => {
 // Create a new Hub
 exports.createHub = async (req, res) => {
   try {
-   
-        const authToken = req.headers["auth-token"];
-    
-        // Check for missing auth token
-        if (!authToken) {
-          return res.status(401).json({
-            status: "error",
-            code: 401,
-            message: "Missing authentication token.",
-            errors: null,
-          });
-        }
-    
-        // Verify token and extract user details
-        const verified = jwt.verify(authToken, process.env.JWT_SECRET);
-        req.user = verified;
-        
-    const { business_id, location_id, mac_address, serial_number, ports } = req.body;
-
-    // Find the business by business_id
-    const business = await Business.findById(business_id);
-    if (!business) {
-      return res.status(404).json({ message: "Business not found" });
-    }
-
-    // Find the location by location_id within the specified business
-    const location = await Location.findById(location_id);
-    if (!location) {
-      return res.status(404).json({ message: "Location not found" });
-    }
-
-    // Generate the unique hub_id
-    const hubId = await generateHubId();
-
-    // Create a new Hub
-    const newHub = new Hub({
-      hub_id: hubId,  // Assign the generated hub_id
-      location: location_id,
-      business: business_id,
-      mac_address,
-      serial_number,
-      ports,
-    });
-
-    // Save the new hub to the database
-    const savedHub = await newHub.save();
-    res.status(201).json({ status: "success", data: savedHub });
-  } catch (err) {
-    res.status(500).json({ message: "Error creating hub", error: err.message });
-  }
-};
-// Adjust the path based on your project structure
-
-// Adjust the path based on your project structure
-
-exports.addOrUpdatePortsToHub = async (req, res) => {
-  try {
     const authToken = req.headers["auth-token"];
-    
+
     // Check for missing auth token
     if (!authToken) {
       return res.status(401).json({
@@ -99,6 +42,86 @@ exports.addOrUpdatePortsToHub = async (req, res) => {
     // Verify token and extract user details
     const verified = jwt.verify(authToken, process.env.JWT_SECRET);
     req.user = verified;
+
+    const { business_id, location_id, mac_address, serial_number, ports } = req.body;
+
+    // Find the business by business_id
+    const business = await Business.findById(business_id);
+    if (!business) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Business not found.",
+        errors: null,
+      });
+    }
+
+    // Find the location by location_id within the specified business
+    const location = await Location.findById(location_id);
+    if (!location) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Location not found.",
+        errors: null,
+      });
+    }
+
+    // Generate the unique hub_id
+    const hubId = await generateHubId();
+
+    // Create a new Hub
+    const newHub = new Hub({
+      hub_id: hubId, // Assign the generated hub_id
+      location: location_id,
+      business: business_id,
+      mac_address,
+      serial_number,
+      ports,
+    });
+
+    // Save the new hub to the database
+    const savedHub = await newHub.save();
+
+    // Send success response matching the expected structure
+    res.status(201).json({
+      status: "success",
+      code: 201,
+      message: "Device information added successfully.",
+      data: { hub_id: savedHub._id },
+      errors: null,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Error creating hub.",
+      errors: err.message,
+    });
+  }
+};
+
+// Adjust the path based on your project structure
+
+// Adjust the path based on your project structure
+exports.addOrUpdatePortsToHub = async (req, res) => {
+  try {
+    const authToken = req.headers["auth-token"];
+
+    // Check for missing auth token
+    if (!authToken) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Missing authentication token.",
+        errors: null,
+      });
+    }
+
+    // Verify token and extract user details
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+
     const { hub_id } = req.params; // Extract hub_id from URL
     const { ports } = req.body; // Extract ports array from request body
 
@@ -157,8 +180,14 @@ exports.addOrUpdatePortsToHub = async (req, res) => {
     return res.status(200).json({
       status: "success",
       code: 200,
-      message: "Ports added or updated successfully.",
-      data: hub.ports,
+      message: "I/O ports fetched successfully.",
+      data: {
+        ports: hub.ports.map(port => ({
+          position: port.position,
+          status: port.status,
+          timestamp: port.timestamp,
+        })),
+      },
       errors: null,
     });
   } catch (err) {
@@ -170,6 +199,8 @@ exports.addOrUpdatePortsToHub = async (req, res) => {
     });
   }
 };
+
+
 
 // Get all Hubs
 exports.getAllHubs = async (req, res) => {
@@ -207,7 +238,7 @@ exports.getHubById = async (req, res) => {
 exports.updateHubName = async (req, res) => {
   try {
     const authToken = req.headers["auth-token"];
-    
+
     // Check for missing auth token
     if (!authToken) {
       return res.status(401).json({
@@ -221,35 +252,52 @@ exports.updateHubName = async (req, res) => {
     // Verify token and extract user details
     const verified = jwt.verify(authToken, process.env.JWT_SECRET);
     req.user = verified;
+
     const { business_id, location_id, hub_id, hub_name } = req.body;
 
     // Find the business by business_id
     const business = await Business.findById(business_id);
     if (!business) {
-      return res.status(404).json({ message: "Business not found" });
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Business not found.",
+        errors: null,
+      });
     }
 
     // Find the location by location_id within the specified business
     const location = await Location.findById(location_id);
     if (!location) {
-      return res.status(404).json({ message: "Location not found" });
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Location not found.",
+        errors: null,
+      });
     }
 
-    // Update the hub using the found business and location
+    // Update the hub name
     const updatedHub = await Hub.findByIdAndUpdate(
       hub_id,
-      {hub_name:hub_name},
+      { hub_name: hub_name },
       { new: true }
-    ).populate("location").populate("business").populate("ports");
+    );
 
     if (!updatedHub) {
-      return res.status(404).json({ message: "Hub not found" });
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Hub not found.",
+        errors: null,
+      });
     }
 
+    // Send success response matching expected structure
     res.status(201).json({
       status: "success",
       code: 201,
-       message: "Hub renamed successfully.",
+      message: "Hub renamed successfully.",
       data: {
         hub_id: updatedHub._id,
         hub_name: updatedHub.hub_name,
@@ -257,9 +305,15 @@ exports.updateHubName = async (req, res) => {
       errors: null,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error updating hub", error: err.message });
+    res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Error updating hub.",
+      errors: err.message,
+    });
   }
 };
+
 
 // Delete Hub by ID
 exports.deleteHub = async (req, res) => {
