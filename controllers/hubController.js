@@ -200,7 +200,61 @@ exports.addOrUpdatePortsToHub = async (req, res) => {
   }
 };
 
+exports.getPortsFromHub = async (req, res) => { 
+  try {
+    const authToken = req.headers["auth-token"];
 
+    // Check for missing auth token
+    if (!authToken) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Missing authentication token.",
+        errors: null,
+      });
+    }
+
+    // Verify token and extract user details
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+
+    const { hub_id } = req.params; // Extract hub_id from URL
+
+    // Find the hub by hub_id
+    const hub = await Hub.findById(hub_id);
+
+    if (!hub) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Hub not found.",
+        errors: null,
+      });
+    }
+
+    // If the hub exists, return the ports data
+    return res.status(200).json({
+      status: "success",
+      code: 200,
+      message: "I/O ports fetched successfully.",
+      data: {
+        ports: hub.ports.map(port => ({
+          position: port.position,
+          status: port.status,
+          timestamp: port.timestamp,
+        })),
+      },
+      errors: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Error fetching ports from hub.",
+      errors: err.message,
+    });
+  }
+};
 
 // Get all Hubs
 exports.getAllHubs = async (req, res) => {

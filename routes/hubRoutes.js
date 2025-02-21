@@ -6,7 +6,8 @@ const {
     getHubById,
     updateHubName,
     deleteHub,
-    addOrUpdatePortsToHub
+    addOrUpdatePortsToHub,
+    getPortsFromHub
      } = require("../controllers/hubController");
 // Middleware to allow only BusinessOwnersBusiness Owner
 //const requireBusinessOwner = authMiddleware("Business Owner");
@@ -18,7 +19,7 @@ router.get('/getAllHubs', getAllHubs);
 
 // Get Hub by ID
 router.get('/:id', getHubById);
-
+router.get('/ports/:hub_id', getPortsFromHub);
 // Update Hub by ID
 router.put('/updateHubName', updateHubName);
 router.put('/:hub_id/ports', addOrUpdatePortsToHub);

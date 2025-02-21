@@ -175,7 +175,7 @@ exports.getMachineById = async (req, res) => {
 
 
 // Update Machine by ID
-exports.updateMachine = async (req, res) => {
+exports.updateMachine = async (req, res) => { 
   try {
     const authToken = req.headers["auth-token"];
         
@@ -192,12 +192,18 @@ exports.updateMachine = async (req, res) => {
     // Verify token and extract user details
     const verified = jwt.verify(authToken, process.env.JWT_SECRET);
     req.user = verified;
+
     const { hub_id, port_position, name, mode, price, pulses_per_second, enabled } = req.body;
 
     // Find the hub by hub_id
     const hub = await Hub.findById(hub_id);
     if (!hub) {
-      return res.status(404).json({ message: "Hub not found" });
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Hub not found",
+        errors: null,
+      });
     }
 
     // Update the machine
@@ -208,14 +214,34 @@ exports.updateMachine = async (req, res) => {
     ).populate("hub");
 
     if (!updatedMachine) {
-      return res.status(404).json({ message: "Machine not found" });
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Machine not found",
+        errors: null,
+      });
     }
 
-    res.status(200).json(updatedMachine);
+    // Respond with the required structure
+    return res.status(200).json({
+      status: "success",
+      code: 200,
+      message: "Machine updated on hub successfully.",
+      data: {
+        machine_id: updatedMachine._id,
+      },
+      errors: null,
+    });
   } catch (err) {
-    res.status(500).json({ message: "Error updating machine", error: err.message });
+    return res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Error updating machine",
+      errors: err.message,
+    });
   }
 };
+
 
 // Delete Machine by ID
 exports.deleteMachine = async (req, res) => {
