@@ -135,10 +135,11 @@ exports.getMachineById = async (req, res) => {
 
     if (!machines || machines.length === 0) {
       return res.status(404).json({
-        status: "error",
+        status: "sucess",
         code: 404,
         message: "No machines found for the given hub.",
         errors: null,
+        data:null
       });
     }
 
