@@ -289,6 +289,15 @@ exports.deleteLocation = async (req, res) => {
               // Verify token and extract user details
               const verified = jwt.verify(authToken, process.env.JWT_SECRET);
               req.user = verified;
+             // Check if the user role is "Owner"
+    if (req.user.role !== "Owner") {
+      return res.status(403).json({
+        status: "error",
+        code: 403,
+        message: "Unauthorized. Only owners can delete locations.",
+        errors: null,
+      });
+    }
     const deletedLocation = await Location.findByIdAndDelete(req.params.id);
 
     if (!deletedLocation) {
@@ -491,3 +500,139 @@ exports.updateSchedule = async (req, res) => {
     res.status(500).json({ status: "error", code: 500, message: "Error updating schedule.", errors: error.message });
   }
 };
+
+
+
+// GET location by location_id
+exports.alldetailsByLocationId = async (req, res) => {
+  try {
+    const authToken = req.headers["auth-token"];
+        
+    // Check for missing auth token
+    if (!authToken) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Missing authentication token.",
+        errors: null,
+      });
+    }
+
+    // Verify token and extract user details
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+    const { location_id } = req.params;
+
+    const location = await Location.findById(location_id).populate("hubs");
+
+    if (!location) {
+      return res.status(404).json({
+        "status": "error",
+        "code": 404,
+        "message": "Location not found.",
+        "data": null,
+        "errors": null
+      });
+    }
+
+    res.status(200).json({
+      "status": "success",
+      "code": 200,
+      "message": "Location info fetched successfully.",
+      "data": {
+        "location_id": location.location_id,
+        "location_name": location.location_name,
+        "address_line_1": location.address_line_1,
+        "address_line_2": location.address_line_2,
+        "city": location.city,
+        "state": location.state,
+        "zipcode": location.zipcode,
+        "logo_url": location.logo_url,
+        "schedule": location.schedule,
+        "customize_app": location.customize_app,
+        "pay_junction": location.payjunction_details
+      },
+      "errors": null
+    });
+  } catch (error) {
+    res.status(500).json({
+      "status": "error",
+      "code": 500,
+      "message": "Server error.",
+      "data": null,
+      "errors": error.message
+    });
+  }
+};
+
+
+// PUT update location by location_id
+exports.updateAlldetailsByLocationId = async (req, res) => {
+  try {
+    const authToken = req.headers["auth-token"];
+        
+    // Check for missing auth token
+    if (!authToken) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Missing authentication token.",
+        errors: null,
+      });
+    }
+
+    // Verify token and extract user details
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.user = verified;
+    const { location_id } = req.params;
+    const updateData = req.body;
+
+    const updatedLocation = await Location.findByIdAndUpdate(
+       location_id ,  // Find location by location_id
+      updateData,
+      { new: true, runValidators: true } // Return updated document & apply validation
+    );
+
+    if (!updatedLocation) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        message: "Location not found.",
+        data: null,
+        errors: null
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      message: "Location updated successfully.",
+      data: {
+        location_id: updatedLocation.location_id,
+        location_name: updatedLocation.location_name,
+        address_line_1: updatedLocation.address_line_1,
+        address_line_2: updatedLocation.address_line_2,
+        city: updatedLocation.city,
+        state: updatedLocation.state,
+        zipcode: updatedLocation.zipcode,
+        business: updatedLocation.business,  // Keeping business reference
+        payjunction_details: updatedLocation.payjunction_details,
+        logo_url: updatedLocation.logo_url,
+        schedule: updatedLocation.schedule,
+        customize_app: updatedLocation.customize_app
+      },
+      errors: null
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      code: 500,
+      message: "Server error.",
+      data: null,
+      errors: error.message
+    });
+  }
+};
+
+
+

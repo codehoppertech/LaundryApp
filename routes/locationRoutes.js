@@ -22,7 +22,9 @@ const {
     updatePayJunctionDetails,
     uploadLogo,
     updateCustomizeApp,
-    updateSchedule
+    updateSchedule,
+    alldetailsByLocationId,
+    updateAlldetailsByLocationId
      } = require("../controllers/locationController");
 
 // Create a new Location
@@ -33,8 +35,9 @@ router.get('/getLocationsByBusiness/business/:businessId', getLocationsByBusines
 router.post("/:location_id/logo",uploadLogo);
 router.put("/:location_id/customize-app",updateCustomizeApp);
 router.put("/:location_id/schedule",updateSchedule);
-
-
+router.get("/alldetailsByLocationId/:location_id",alldetailsByLocationId);
+router.put("/updateAlldetailsByLocationId/:location_id",updateAlldetailsByLocationId);
+router.put("/:location_id/schedule",updateSchedule);
 // Get a Location by ID
 router.get('/:id', getLocationById);
 
